@@ -36,20 +36,7 @@ namespace GenericHostExperiments
                         loggingBuilder.AddConsole();
                         loggingBuilder.AddDebug();
                     })
-                    // loads from config file
-                    .UseAzureStorage() 
-                    // load the storage accounts manually
-                    /*
-                    .UseAzureStorage(() => { 
-                        CloudStorageAccount tmp;
-                        Dictionary<string,CloudStorageAccount> list = new Dictionary<string, CloudStorageAccount>();
-                        if(CloudStorageAccount.TryParse("DefaultEndpointsProtocol=https;AccountName=yourstorageaccount;AccountKey=YOUR_KEY;EndpointSuffix=core.windows.net", out tmp) && tmp != null)
-                            list.Add("ImageStorage", tmp);
-                        return list;
-                    })
-                    */
-                    // load using your own IStorageAccountFactory implementation 
-                    //.UseAzureStorage(new MyExampleIStorageAccountFactory("DefaultEndpointsProtocol=https;AccountName=yourstorageaccount;AccountKey=YOUR_KEY;EndpointSuffix=core.windows.net"))
+                    .UseAzureStorage() // loads from config file (see README.md for other methods)
                     .Build();
 
                 await host.RunAsync();
