@@ -46,7 +46,7 @@ var host = new HostBuilder()
     .Build();
 ```
 
-## Via Service Implementation
+### Via Service Implementation
 
 The `IStorageAccountFactory` interface is provided so that you can construct your own implementations that load Azure Storage accounts in other means (say, using the Azure Management Libraries if you want access to all storage accounts in your subscription or in a specific resource group). 
 
