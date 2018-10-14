@@ -14,7 +14,8 @@ THe default Azure Storage extension middleware assumes it should read all of the
 
 ```csharp
 var host = new HostBuilder()
-    .UseAzureStorage();
+    .UseAzureStorage()
+    .Build();;
 ```
 
 This assumes your `appsettings.json` (or environment variables) have been set up with the following style configuration. 
@@ -54,23 +55,23 @@ An example implementation is included in this repository, shown below. It simply
 
 ```csharp
 public class MyExampleIStorageAccountFactory : IStorageAccountFactory
+{
+    string _connectionString;
+
+    public MyExampleIStorageAccountFactory(string connectionString)
     {
-        string _connectionString;
-
-        public MyExampleIStorageAccountFactory(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
-
-        public IDictionary<string, CloudStorageAccount> LoadStorageAccounts()
-        {
-            CloudStorageAccount tmp;
-            Dictionary<string,CloudStorageAccount> list = new Dictionary<string, CloudStorageAccount>();
-            if(CloudStorageAccount.TryParse(_connectionString, out tmp) && tmp != null)
-                list.Add("ImageStorage", tmp);
-            return list;
-        }
+        _connectionString = connectionString;
     }
+
+    public IDictionary<string, CloudStorageAccount> LoadStorageAccounts()
+    {
+        CloudStorageAccount tmp;
+        Dictionary<string,CloudStorageAccount> list = new Dictionary<string, CloudStorageAccount>();
+        if(CloudStorageAccount.TryParse(_connectionString, out tmp) && tmp != null)
+            list.Add("ImageStorage", tmp);
+        return list;
+    }
+}
 ```
 
 Then, you can use the implementation during host build-up. 
