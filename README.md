@@ -15,7 +15,7 @@ THe default Azure Storage extension middleware assumes it should read all of the
 ```csharp
 var host = new HostBuilder()
     .UseAzureStorage()
-    .Build();;
+    .Build();
 ```
 
 This assumes your `appsettings.json` (or environment variables) have been set up with the following style configuration. 
