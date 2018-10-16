@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using GenericHostExperiments.Storage;
+using GenericHostExperiments.AzureStorage;
 using Microsoft.WindowsAzure.Storage;
 using System.Collections.Generic;
 

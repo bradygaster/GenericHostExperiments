@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.WindowsAzure.Storage;
 
-namespace GenericHostExperiments.Storage
+namespace GenericHostExperiments.AzureStorage
 {
     public interface IStorageAccountFactory
     {

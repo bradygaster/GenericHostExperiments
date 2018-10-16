@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.WindowsAzure.Storage;
 
-namespace GenericHostExperiments.Storage
+namespace GenericHostExperiments.AzureStorage
 {
     public class ManuallyLoadedStorageAccountFactory : IStorageAccountFactory
     {

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 
-namespace GenericHostExperiments.Storage
+namespace GenericHostExperiments.AzureStorage
 {
     public class MyExampleIStorageAccountFactory : IStorageAccountFactory
     {

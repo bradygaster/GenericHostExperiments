@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.WindowsAzure.Storage;
 
-namespace GenericHostExperiments.Storage
+namespace GenericHostExperiments.AzureStorage
 {
     public static class AzureStorageExtensions
     {
