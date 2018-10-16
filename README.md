@@ -46,8 +46,6 @@ This way, subclasses can perform the individual responsibilities of sending or r
 
 Case in point, the following two classes are available in the [`DemoScenario.cs`](DemoScenario.cs) file. Note that each take an argument during construction via .NET Core's dependency injection capabilities of the `IStorageAccountFactory` service, which makes it easy to get to each of the Storage Accounts wired up during the host's build phase. 
 
->  Note: After changing from `IHostedService` to `BackgroundService`, I'm noticing a one-time run of each service. Investigating this at the moment, and will post a fix once I uncover it. This is, again, an experimental repository. Thanks to David Fowler for some good tips on improving these implementations. 
-
 ### Using the Background Services
 
 These services would be wired up during build-up of the host (an alternative approach, which would decorate the `IHostBuilder` with an extension method, will be added later) using `ConfigureServices`. 
@@ -57,8 +55,8 @@ var host = new HostBuilder()
     ...
     .ConfigureServices((services) => {
         services.AddLogging();
-        services.AddSingleton<IHostedService,DemoQueueFeedService>();
-        services.AddSingleton<IHostedService,DemoQueueListenerService>();
+        services.AddHostedService<DemoQueueListenerService>();
+        services.AddHostedService<DemoQueueFeedService>();
     })
     ...
     .UseAzureStorage() // loads from config file (see README.md for other methods)
@@ -72,30 +70,30 @@ This service does the job of watching the Azure Storage Queue and outputting any
 ```csharp
 public class DemoQueueListenerService : DemoAzureStorageQueueService
 {
-    public DemoQueueListenerService(ILogger<DemoQueueListenerService> logger, 
+    public DemoQueueListenerService(ILogger<DemoQueueListenerService> logger,
         IStorageAccountFactory storageAccountFactory) : base(logger, storageAccountFactory)
     {
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await CloudQueue.CreateIfNotExistsAsync();
-
-        CloudQueueMessage msg = null;
-        
-        while (msg == null)
+        while(!stoppingToken.IsCancellationRequested)
         {
+            await CloudQueue.CreateIfNotExistsAsync();
+
+            CloudQueueMessage msg = null;
+
             Logger.LogInformation("Checking for message...");
             msg = await CloudQueue.GetMessageAsync();
-
-            if(msg != null)
+            
+            while (msg != null && !stoppingToken.IsCancellationRequested)
             {
                 Logger.LogInformation("RECEIVED message: " + msg.AsString);
                 await CloudQueue.DeleteMessageAsync(msg);
-                msg = null;
+                msg = await CloudQueue.GetMessageAsync();
             }
-            else
-                await Task.Delay(TimeSpan.FromSeconds(10000), stoppingToken);
+
+            await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
         }
     }
 }
@@ -108,18 +106,21 @@ This service does the job of pumping messages into the Azure Storage Queue. A `T
 ```csharp
 public class DemoQueueFeedService : DemoAzureStorageQueueService
 {
-    public DemoQueueFeedService(ILogger<DemoQueueListenerService> logger, 
+    public DemoQueueFeedService(ILogger<DemoQueueListenerService> logger,
         IStorageAccountFactory storageAccountFactory) : base(logger, storageAccountFactory)
     {
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await CloudQueue.CreateIfNotExistsAsync();
-        string msg = string.Format($"'Heartbeat time at {DateTime.UtcNow.ToString()}'.");
-        Logger.LogInformation("SENDING message " + msg);
-        await CloudQueue.AddMessageAsync(new CloudQueueMessage(msg));
-        await Task.Delay(3000, stoppingToken);
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            await CloudQueue.CreateIfNotExistsAsync();
+            string msg = string.Format($"'Heartbeat time at {DateTime.UtcNow.ToString()}'.");
+            Logger.LogInformation("SENDING message " + msg);
+            await CloudQueue.AddMessageAsync(new CloudQueueMessage(msg));
+            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+        }
     }
 }
 ```
