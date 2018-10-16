@@ -66,7 +66,7 @@ namespace GenericHostExperiments
                     msg = null;
                 }
                 else
-                    Thread.Sleep(10000); // lame, but you get the idea
+                    await Task.Delay(TimeSpan.FromSeconds(10000));
             }
         }
     }
