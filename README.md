@@ -23,40 +23,34 @@ Consider the following base class, which implements the [`IHostedService`](https
 > Note, this class should have some sort of a queue name identifier so "pairs" of feeder/listener classes could work together to send and process messages. 
 
 ```csharp
-public class DemoAzureStorageQueueService : IHostedService
+public abstract class DemoAzureStorageQueueService : BackgroundService
 {
     public DemoAzureStorageQueueService(ILogger<DemoQueueListenerService> logger,
         IStorageAccountFactory storageAccountFactory)
     {
         Logger = logger;
         StorageAccountFactory = storageAccountFactory;
+        StorageAccountFactory.LoadStorageAccounts();
+        StorageAccount = StorageAccountFactory.GetAccount("imageStorage");
+        CloudQueue = StorageAccount.CreateCloudQueueClient().GetQueueReference("incoming");
     }
 
     public ILogger<DemoQueueListenerService> Logger { get; internal set; }
     public IStorageAccountFactory StorageAccountFactory { get; internal set; }
     public CloudStorageAccount StorageAccount { get; internal set; }
     public CloudQueue CloudQueue { get; internal set; }
-
-    public virtual async Task StartAsync(CancellationToken cancellationToken)
-    {
-        Logger.LogInformation("Attaching to Azure Storage Queue");
-
-        StorageAccountFactory.LoadStorageAccounts();
-        StorageAccount = StorageAccountFactory.GetAccount("imageStorage");
-        CloudQueue = StorageAccount.CreateCloudQueueClient().GetQueueReference("incoming");
-        await CloudQueue.CreateIfNotExistsAsync();
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
-    }
 }
 ```
 
 This way, subclasses can perform the individual responsibilities of sending or receiving to or from a queue. 
 
 Case in point, the following two classes are available in the [`DemoScenario.cs`](DemoScenario.cs) file. Note that each take an argument during construction via .NET Core's dependency injection capabilities of the `IStorageAccountFactory` service, which makes it easy to get to each of the Storage Accounts wired up during the host's build phase. 
+
+>  Note: After changing from `IHostedService` to `BackgroundService`, I'm noticing a one-time run of each service. Investigating this at the moment, and will post a fix once I uncover it. This is, again, an experimental repository. Thanks to David Fowler for some good tips on improving these implementations. 
+
+### The Listener Service
+
+This service does the job of watching the Azure Storage Queue and outputting any messages it receives to the logger. 
 
 ```csharp
 public class DemoQueueListenerService : DemoAzureStorageQueueService
@@ -65,43 +59,27 @@ public class DemoQueueListenerService : DemoAzureStorageQueueService
         IStorageAccountFactory storageAccountFactory) : base(logger, storageAccountFactory)
     {
     }
-}
-```
 
-```csharp
-public class DemoQueueFeedService : DemoAzureStorageQueueService
-{
-    public DemoQueueFeedService(ILogger<DemoQueueListenerService> logger, IStorageAccountFactory storageAccountFactory) : base(logger, storageAccountFactory)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-    }
-}
-```
+        await CloudQueue.CreateIfNotExistsAsync();
 
-### The Listener Service
-
-This service does the job of watching the Azure Storage Queue and outputting any messages it receives to the logger. 
-
-```csharp
-public override async Task StartAsync(CancellationToken cancellationToken)
-{
-    await base.StartAsync(cancellationToken);
-
-    Logger.LogInformation("Listener Service Started");
-    CloudQueueMessage msg = null;
-    
-    while (msg == null)
-    {
-        Logger.LogInformation("Checking for message...");
-        msg = await CloudQueue.GetMessageAsync();
-
-        if(msg != null)
+        CloudQueueMessage msg = null;
+        
+        while (msg == null)
         {
-            Logger.LogInformation("RECEIVED message: " + msg.AsString);
-            await CloudQueue.DeleteMessageAsync(msg);
-            msg = null;
+            Logger.LogInformation("Checking for message...");
+            msg = await CloudQueue.GetMessageAsync();
+
+            if(msg != null)
+            {
+                Logger.LogInformation("RECEIVED message: " + msg.AsString);
+                await CloudQueue.DeleteMessageAsync(msg);
+                msg = null;
+            }
+            else
+                await Task.Delay(TimeSpan.FromSeconds(10000), stoppingToken);
         }
-        else
-            await Task.Delay(TimeSpan.FromSeconds(10000));
     }
 }
 ```
@@ -111,22 +89,21 @@ public override async Task StartAsync(CancellationToken cancellationToken)
 This service does the job of pumping messages into the Azure Storage Queue. A `Timer` instance is created during `OnStart`, and each time the Timer fires the feeder service enqueues another message.
 
 ```csharp
-public Timer Timer { get; private set; }
-
-public override async Task StartAsync(CancellationToken cancellationToken)
+public class DemoQueueFeedService : DemoAzureStorageQueueService
 {
-    await base.StartAsync(cancellationToken);
+    public DemoQueueFeedService(ILogger<DemoQueueListenerService> logger, 
+        IStorageAccountFactory storageAccountFactory) : base(logger, storageAccountFactory)
+    {
+    }
 
-    Logger.LogInformation("Feeder Service Started");
-    
-    Timer = new Timer(OnTimerTick, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
-}
-
-private async void OnTimerTick(object state)
-{
-    string msg = string.Format($"'Heartbeat time at {DateTime.UtcNow.ToString()}'.");
-    Logger.LogInformation("SENDING message " + msg);
-    await CloudQueue.AddMessageAsync(new CloudQueueMessage(msg));
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        await CloudQueue.CreateIfNotExistsAsync();
+        string msg = string.Format($"'Heartbeat time at {DateTime.UtcNow.ToString()}'.");
+        Logger.LogInformation("SENDING message " + msg);
+        await CloudQueue.AddMessageAsync(new CloudQueueMessage(msg));
+        await Task.Delay(3000, stoppingToken);
+    }
 }
 ```
 

@@ -10,34 +10,22 @@ using Microsoft.WindowsAzure.Storage.Queue;
 
 namespace GenericHostExperiments
 {
-    public class DemoAzureStorageQueueService : IHostedService
+    public abstract class DemoAzureStorageQueueService : BackgroundService
     {
         public DemoAzureStorageQueueService(ILogger<DemoQueueListenerService> logger,
             IStorageAccountFactory storageAccountFactory)
         {
             Logger = logger;
             StorageAccountFactory = storageAccountFactory;
+            StorageAccountFactory.LoadStorageAccounts();
+            StorageAccount = StorageAccountFactory.GetAccount("imageStorage");
+            CloudQueue = StorageAccount.CreateCloudQueueClient().GetQueueReference("incoming");
         }
 
         public ILogger<DemoQueueListenerService> Logger { get; internal set; }
         public IStorageAccountFactory StorageAccountFactory { get; internal set; }
         public CloudStorageAccount StorageAccount { get; internal set; }
         public CloudQueue CloudQueue { get; internal set; }
-
-        public virtual async Task StartAsync(CancellationToken cancellationToken)
-        {
-            Logger.LogInformation("Attaching to Azure Storage Queue");
-
-            StorageAccountFactory.LoadStorageAccounts();
-            StorageAccount = StorageAccountFactory.GetAccount("imageStorage");
-            CloudQueue = StorageAccount.CreateCloudQueueClient().GetQueueReference("incoming");
-            await CloudQueue.CreateIfNotExistsAsync();
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
     }
 
     public class DemoQueueListenerService : DemoAzureStorageQueueService
@@ -47,11 +35,10 @@ namespace GenericHostExperiments
         {
         }
 
-        public override async Task StartAsync(CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await base.StartAsync(cancellationToken);
+            await CloudQueue.CreateIfNotExistsAsync();
 
-            Logger.LogInformation("Listener Service Started");
             CloudQueueMessage msg = null;
             
             while (msg == null)
@@ -66,33 +53,25 @@ namespace GenericHostExperiments
                     msg = null;
                 }
                 else
-                    await Task.Delay(TimeSpan.FromSeconds(10000));
+                    await Task.Delay(TimeSpan.FromSeconds(10000), stoppingToken);
             }
         }
     }
 
     public class DemoQueueFeedService : DemoAzureStorageQueueService
     {
-        public DemoQueueFeedService(ILogger<DemoQueueListenerService> logger, IStorageAccountFactory storageAccountFactory) : base(logger, storageAccountFactory)
+        public DemoQueueFeedService(ILogger<DemoQueueListenerService> logger, 
+            IStorageAccountFactory storageAccountFactory) : base(logger, storageAccountFactory)
         {
         }
 
-        public Timer Timer { get; private set; }
-
-        public override async Task StartAsync(CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await base.StartAsync(cancellationToken);
-
-            Logger.LogInformation("Feeder Service Started");
-            
-            Timer = new Timer(OnTimerTick, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
-        }
-
-        private async void OnTimerTick(object state)
-        {
+            await CloudQueue.CreateIfNotExistsAsync();
             string msg = string.Format($"'Heartbeat time at {DateTime.UtcNow.ToString()}'.");
             Logger.LogInformation("SENDING message " + msg);
             await CloudQueue.AddMessageAsync(new CloudQueueMessage(msg));
+            await Task.Delay(3000, stoppingToken);
         }
     }
 }

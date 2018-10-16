@@ -31,8 +31,8 @@ namespace GenericHostExperiments
                     })
                     .ConfigureServices((services) => {
                         services.AddLogging();
-                        services.AddHostedService<DemoQueueFeedService>();
-                        services.AddHostedService<DemoQueueListenerService>();
+                        services.AddSingleton<IHostedService,DemoQueueFeedService>();
+                        services.AddSingleton<IHostedService,DemoQueueListenerService>();
                     })
                     .ConfigureLogging((hostBuilderContext, loggingBuilder) => {
                         loggingBuilder.AddConsole();
