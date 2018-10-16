@@ -48,6 +48,23 @@ Case in point, the following two classes are available in the [`DemoScenario.cs`
 
 >  Note: After changing from `IHostedService` to `BackgroundService`, I'm noticing a one-time run of each service. Investigating this at the moment, and will post a fix once I uncover it. This is, again, an experimental repository. Thanks to David Fowler for some good tips on improving these implementations. 
 
+### Using the Background Services
+
+These services would be wired up during build-up of the host (an alternative approach, which would decorate the `IHostBuilder` with an extension method, will be added later) using `ConfigureServices`. 
+
+```csharp
+var host = new HostBuilder()
+    ...
+    .ConfigureServices((services) => {
+        services.AddLogging();
+        services.AddSingleton<IHostedService,DemoQueueFeedService>();
+        services.AddSingleton<IHostedService,DemoQueueListenerService>();
+    })
+    ...
+    .UseAzureStorage() // loads from config file (see README.md for other methods)
+    .Build();
+```
+
 ### The Listener Service
 
 This service does the job of watching the Azure Storage Queue and outputting any messages it receives to the logger. 
