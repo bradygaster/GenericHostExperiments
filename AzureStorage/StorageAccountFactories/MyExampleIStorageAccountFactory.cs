@@ -9,19 +9,29 @@ namespace GenericHostExperiments.AzureStorage
     public class MyExampleIStorageAccountFactory : IStorageAccountFactory
     {
         string _connectionString;
+        private CloudStorageAccount _storageAccount;
 
         public MyExampleIStorageAccountFactory(string connectionString)
         {
             _connectionString = connectionString;
         }
 
+        public CloudStorageAccount GetAccount(string name)
+        {
+            return _storageAccount;
+        }
+
         public IDictionary<string, CloudStorageAccount> LoadStorageAccounts()
         {
-            CloudStorageAccount tmp;
-            Dictionary<string,CloudStorageAccount> list = new Dictionary<string, CloudStorageAccount>();
-            if(CloudStorageAccount.TryParse(_connectionString, out tmp) && tmp != null)
-                list.Add("ImageStorage", tmp);
-            return list;
+            if(CloudStorageAccount.TryParse(_connectionString, out _storageAccount) 
+                && _storageAccount != null)
+            {
+                Dictionary<string,CloudStorageAccount> list = new Dictionary<string, CloudStorageAccount>();
+                list.Add("ImageStorage", _storageAccount);
+                return list;
+            }
+
+            return null;
         }
     }
 }

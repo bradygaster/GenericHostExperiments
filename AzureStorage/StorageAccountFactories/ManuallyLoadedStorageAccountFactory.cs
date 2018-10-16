@@ -14,6 +14,11 @@ namespace GenericHostExperiments.AzureStorage
             _storageAccounts = factory();
         }
 
+        public CloudStorageAccount GetAccount(string name)
+        {
+            return _storageAccounts[name];
+        }
+
         public IDictionary<string,CloudStorageAccount> LoadStorageAccounts()
         {
             return _storageAccounts;

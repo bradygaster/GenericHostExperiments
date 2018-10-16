@@ -6,5 +6,6 @@ namespace GenericHostExperiments.AzureStorage
     public interface IStorageAccountFactory
     {
         IDictionary<string,CloudStorageAccount> LoadStorageAccounts();
+        CloudStorageAccount GetAccount(string name);
     }
 }

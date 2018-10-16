@@ -10,6 +10,8 @@ namespace GenericHostExperiments.AzureStorage
     {
         private readonly IConfiguration _configuration;
 
+        private Dictionary<string, CloudStorageAccount> _storageAccounts;
+
         public ConfigurationFileStorageAccountFactory(IConfiguration configuration,
             ILogger<ConfigurationFileStorageAccountFactory> logger)
         {
@@ -19,25 +21,30 @@ namespace GenericHostExperiments.AzureStorage
 
         public ILogger Logger { get; }
 
+        public CloudStorageAccount GetAccount(string name)
+        {
+            return _storageAccounts[name];
+        }
+
         public IDictionary<string, CloudStorageAccount> LoadStorageAccounts()
         {
             var section = _configuration.GetSection("Azure:Storage");
             var items = section.GetChildren();
 
-            Dictionary<string, CloudStorageAccount> storageAccounts = new Dictionary<string, CloudStorageAccount>();
+            _storageAccounts = new Dictionary<string, CloudStorageAccount>();
             CloudStorageAccount tmp = null;
 
             foreach (var item in items)
             {
                 if (CloudStorageAccount.TryParse(item.Value, out tmp) && tmp != null)
-                    storageAccounts.Add(item.Key, tmp);
+                    _storageAccounts.Add(item.Key, tmp);
                 else
                 {
 
                 }
             }
             
-            return storageAccounts;
+            return _storageAccounts;
         }
     }
 }
