@@ -18,7 +18,7 @@ This release adds a demonstration for services that would send and receive messa
 
 ### A Service Abstraction for a Storage Queue
 
-Consider the following base class, which implements the [`IHostedService`](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/hosted-services?view=aspnetcore-2.1) interface, and during `OnStart` sets up a reference to a `CloudQueue` inheritors can use to send and receive messages. 
+Consider the following base class, which implements the [`BackgroundService`](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.hosting.backgroundservice?view=aspnetcore-2.1) class. 
 
 > Note, this class should have some sort of a queue name identifier so "pairs" of feeder/listener classes could work together to send and process messages. 
 
