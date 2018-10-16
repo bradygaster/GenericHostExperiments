@@ -101,7 +101,7 @@ public class DemoQueueListenerService : DemoAzureStorageQueueService
 
 ### The Feeder Service
 
-This service does the job of pumping messages into the Azure Storage Queue. A `Timer` instance is created during `OnStart`, and each time the Timer fires the feeder service enqueues another message.
+This service does the job of pumping messages into the Azure Storage Queue. 
 
 ```csharp
 public class DemoQueueFeedService : DemoAzureStorageQueueService
