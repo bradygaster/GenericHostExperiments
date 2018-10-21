@@ -18,11 +18,7 @@ Separated the middleware layer into its own project/assembly to enable reuse and
 
 Now, the Azure Storage middleware can be pulled in using an inclusion of the `Microsoft.Extensions.Azure.Storage` namespace, then dialed in using the `UseAzureStorage()` extension method. 
 
-<div style="max-width: 640px;">
-
-![Wiring up the Storage functionality](docs/wire-up.png)
-
-</div>
+![Wiring up the Storage functionality](docs/wire-up.png | width=100)
 
 ---
 
@@ -143,11 +139,7 @@ public class DemoQueueFeedService : DemoAzureStorageQueueService
 
 When properly configured with a live Azure Storage Account, the code will result in output similar to the screen shot below from the code running in Visual Studio Code. 
 
-<div style="max-width: 640px;">
-
 ![Queue Example](docs/queues-running.png)
-
-</div>
 
 --- 
 
