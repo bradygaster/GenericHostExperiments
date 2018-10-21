@@ -18,7 +18,7 @@ Separated the middleware layer into its own project/assembly to enable reuse and
 
 Now, the Azure Storage middleware can be pulled in using an inclusion of the `Microsoft.Extensions.Azure.Storage` namespace, then dialed in using the `UseAzureStorage()` extension method. 
 
-![Wiring up the Storage functionality](docs/wire-up.png | width=100)
+![Wiring up the Storage functionality](docs/wire-up.png)
 
 ---
 
