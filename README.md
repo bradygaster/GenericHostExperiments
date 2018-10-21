@@ -10,7 +10,13 @@ This section will contain updates that occur in reverse-chronological order so y
 
 ---
 
-## Version 0.0.3.0
+## Version 0.0.4.0-preview
+
+Added implementation of the `UseAzureStorage` implementations for the `IWebHostBuilder` interface so ASP.NET Core developers can make use of them today. 
+
+---
+
+## Version 0.0.3.0-preview
 
 Separated the middleware layer into its own project/assembly to enable reuse and sharing in other applications. I will probably create a NuGet package for this and distribute it on MyGet for folks who want to tinker with the redistributable. 
 
