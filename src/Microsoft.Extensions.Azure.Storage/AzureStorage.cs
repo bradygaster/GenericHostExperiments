@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 
-namespace GenericHostExperiments.AzureStorage
+namespace Microsoft.Extensions.Azure.Storage
 {
     public class AzureStorage : IHostedService
     {

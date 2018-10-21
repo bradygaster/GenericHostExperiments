@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using GenericHostExperiments.AzureStorage;
+using Microsoft.Extensions.Azure.Storage;
 using Microsoft.WindowsAzure.Storage;
 using System.Collections.Generic;
 
@@ -29,6 +29,7 @@ namespace GenericHostExperiments
                         configApp.SetBasePath(Directory.GetCurrentDirectory());
                         configApp.AddJsonFile("appsettings.json", optional: true);
                     })
+                    .UseAzureStorage() // loads from config file (see README.md for other methods)
                     .ConfigureServices((services) => {
                         services.AddLogging();
                         services.AddHostedService<DemoQueueListenerService>();
@@ -38,7 +39,6 @@ namespace GenericHostExperiments
                         loggingBuilder.AddConsole();
                         loggingBuilder.AddDebug();
                     })
-                    .UseAzureStorage() // loads from config file (see README.md for other methods)
                     .Build();
 
                 await host.RunAsync();

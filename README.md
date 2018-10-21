@@ -10,6 +10,22 @@ This section will contain updates that occur in reverse-chronological order so y
 
 ---
 
+## Version 0.0.3.0
+
+Separated the middleware layer into its own project/assembly to enable reuse and sharing in other applications. I will probably create a NuGet package for this and distribute it on MyGet for folks who want to tinker with the redistributable. 
+
+> Note: I changed the namespace to be `Microsoft.Extensions.Azure.Storage`, as this is the sort of nomenclature I'd expect to see from a "real" redistrubutable package. This **in no way** implies this as a supported Microsoft project. This is **only** an experiment at this time. 
+
+Now, the Azure Storage middleware can be pulled in using an inclusion of the `Microsoft.Extensions.Azure.Storage` namespace, then dialed in using the `UseAzureStorage()` extension method. 
+
+<div style="max-width: 640px;">
+
+![Wiring up the Storage functionality](docs/wire-up.png)
+
+</div>
+
+---
+
 ## Version 0.0.2.0
 
 This release adds a demonstration for services that would send and receive messages from an Azure Storage Queue. 
@@ -127,7 +143,11 @@ public class DemoQueueFeedService : DemoAzureStorageQueueService
 
 When properly configured with a live Azure Storage Account, the code will result in output similar to the screen shot below from the code running in Visual Studio Code. 
 
+<div style="max-width: 640px;">
+
 ![Queue Example](docs/queues-running.png)
+
+</div>
 
 --- 
 
