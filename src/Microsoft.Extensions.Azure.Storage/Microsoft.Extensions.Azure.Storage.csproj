@@ -6,7 +6,7 @@
 
   <PropertyGroup>
     <VersionPrefix>0.0.3</VersionPrefix>
-    <VersionSuffix>alpha</VersionSuffix>
+    <VersionSuffix>preview</VersionSuffix>
   </PropertyGroup>
 
   <ItemGroup>
