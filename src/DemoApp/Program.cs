@@ -29,9 +29,9 @@ namespace GenericHostExperiments
                         configApp.SetBasePath(Directory.GetCurrentDirectory());
                         configApp.AddJsonFile("appsettings.json", optional: true);
                     })
-                    .UseAzureStorage() // loads from config file (see README.md for other methods)
                     .ConfigureServices((services) => {
                         services.AddLogging();
+                        services.AddAzureStorage();
                         services.AddHostedService<DemoQueueListenerService>();
                         services.AddHostedService<DemoQueueFeedService>();
                     })

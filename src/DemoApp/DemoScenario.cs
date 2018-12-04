@@ -53,7 +53,7 @@ namespace GenericHostExperiments
                     msg = await CloudQueue.GetMessageAsync();
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
             }
         }
     }
@@ -73,7 +73,7 @@ namespace GenericHostExperiments
                 string msg = string.Format($"'Heartbeat time at {DateTime.UtcNow.ToString()}'.");
                 Logger.LogInformation("SENDING message " + msg);
                 await CloudQueue.AddMessageAsync(new CloudQueueMessage(msg));
-                await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
             }
         }
     }
