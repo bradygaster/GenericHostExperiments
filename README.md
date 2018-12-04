@@ -10,6 +10,12 @@ This section will contain updates that occur in reverse-chronological order so y
 
 ---
 
+## Version 0.0.5.0-preview
+
+Moved `UseAzureStorage` methods to hang from the `IServiceCollection` instead of `IHostBuilder` and `IWebHostBuilder` as it made more sense and was cleaner there. 
+
+---
+
 ## Version 0.0.4.0-preview
 
 Added implementation of the `UseAzureStorage` implementations for the `IWebHostBuilder` interface so ASP.NET Core developers can make use of them today. 
@@ -18,13 +24,11 @@ Added implementation of the `UseAzureStorage` implementations for the `IWebHostB
 
 ## Version 0.0.3.0-preview
 
-Separated the middleware layer into its own project/assembly to enable reuse and sharing in other applications. I will probably create a NuGet package for this and distribute it on MyGet for folks who want to tinker with the redistributable. 
+Refactored into its own project/assembly to enable reuse and sharing in other applications. I will probably create a NuGet package for this and distribute it on MyGet for folks who want to tinker with the redistributable. 
 
 > Note: I changed the namespace to be `Microsoft.Extensions.Azure.Storage`, as this is the sort of nomenclature I'd expect to see from a "real" redistrubutable package. This **in no way** implies this as a supported Microsoft project. This is **only** an experiment at this time. 
 
-Now, the Azure Storage middleware can be pulled in using an inclusion of the `Microsoft.Extensions.Azure.Storage` namespace, then dialed in using the `UseAzureStorage()` extension method. 
-
-![Wiring up the Storage functionality](docs/wire-up.png)
+Now, Azure Storage can be pulled in using an inclusion of the `Microsoft.Extensions.Azure.Storage` namespace, then dialed in using the `AddAzureStorage()` extension method. 
 
 ---
 
@@ -73,11 +77,11 @@ var host = new HostBuilder()
     ...
     .ConfigureServices((services) => {
         services.AddLogging();
+        services.UseAzureStorage() // loads from config file (see README.md for other methods
         services.AddHostedService<DemoQueueListenerService>();
         services.AddHostedService<DemoQueueFeedService>();
     })
     ...
-    .UseAzureStorage() // loads from config file (see README.md for other methods)
     .Build();
 ```
 
@@ -158,9 +162,7 @@ This first iteration resulted in adding an extension method to add [Azure Storag
 THe default Azure Storage extension middleware assumes it should read all of the Azure Storage connection strings from configuration. As shown in `Program.cs`, the `UseAzureStorage()` extension method is used with no parameters. 
 
 ```csharp
-var host = new HostBuilder()
-    .UseAzureStorage()
-    .Build();
+services.UseAzureStorage();
 ```
 
 This assumes your `appsettings.json` (or environment variables) have been set up with the following style configuration. 
@@ -181,15 +183,14 @@ This assumes your `appsettings.json` (or environment variables) have been set up
 You can also setup your own accounts during configuration manually. 
 
 ```csharp
-var host = new HostBuilder()
+services
     .UseAzureStorage(() => { 
         CloudStorageAccount tmp;
         Dictionary<string,CloudStorageAccount> list = new Dictionary<string, CloudStorageAccount>();
         if(CloudStorageAccount.TryParse("DefaultEndpointsProtocol=https;AccountName=yourstorageaccount;AccountKey=YOUR_KEY;EndpointSuffix=core.windows.net", out tmp) && tmp != null)
             list.Add("ImageStorage", tmp);
         return list;
-    })
-    .Build();
+    });
 ```
 
 ### Via Service Implementation
@@ -222,9 +223,8 @@ public class MyExampleIStorageAccountFactory : IStorageAccountFactory
 Then, you can use the implementation during host build-up. 
 
 ```csharp
-var host = new HostBuilder()
-    .UseAzureStorage(new MyExampleIStorageAccountFactory("DefaultEndpointsProtocol=https;AccountName=yourstorageaccount;AccountKey=YOUR_KEY;EndpointSuffix=core.windows.net"))
-    .Build();
+services
+    .UseAzureStorage(new MyExampleIStorageAccountFactory("DefaultEndpointsProtocol=https;AccountName=yourstorageaccount;AccountKey=YOUR_KEY;EndpointSuffix=core.windows.net"));
 ```
 
 --- 
