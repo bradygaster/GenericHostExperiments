@@ -162,7 +162,7 @@ This first iteration resulted in adding an extension method to add [Azure Storag
 THe default Azure Storage extension middleware assumes it should read all of the Azure Storage connection strings from configuration. As shown in `Program.cs`, the `UseAzureStorage()` extension method is used with no parameters. 
 
 ```csharp
-services.UseAzureStorage();
+services.AddAzureStorage();
 ```
 
 This assumes your `appsettings.json` (or environment variables) have been set up with the following style configuration. 
@@ -184,7 +184,7 @@ You can also setup your own accounts during configuration manually.
 
 ```csharp
 services
-    .UseAzureStorage(() => { 
+    .AddAzureStorage(() => { 
         CloudStorageAccount tmp;
         Dictionary<string,CloudStorageAccount> list = new Dictionary<string, CloudStorageAccount>();
         if(CloudStorageAccount.TryParse("DefaultEndpointsProtocol=https;AccountName=yourstorageaccount;AccountKey=YOUR_KEY;EndpointSuffix=core.windows.net", out tmp) && tmp != null)
@@ -224,7 +224,7 @@ Then, you can use the implementation during host build-up.
 
 ```csharp
 services
-    .UseAzureStorage(new MyExampleIStorageAccountFactory("DefaultEndpointsProtocol=https;AccountName=yourstorageaccount;AccountKey=YOUR_KEY;EndpointSuffix=core.windows.net"));
+    .AddAzureStorage(new MyExampleIStorageAccountFactory("DefaultEndpointsProtocol=https;AccountName=yourstorageaccount;AccountKey=YOUR_KEY;EndpointSuffix=core.windows.net"));
 ```
 
 --- 
